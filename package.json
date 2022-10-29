@@ -1,0 +1,16 @@
+{
+  "name": "s3-download",
+  "private": true,
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "start": "node ./index.js"
+  },
+  "type": "module",
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "aws-sdk": "^2.1243.0",
+    "dotenv": "^16.0.3"
+  }
+}
