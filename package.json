@@ -1,13 +1,24 @@
 {
-  "name": "s3-download",
+  "name": "s3-bucket-downloader",
   "private": true,
   "version": "1.0.0",
-  "description": "",
+  "description": "Download all of the contents of the Amazon S3 bucket",
+  "author": {
+    "name": "Peter Dyumin",
+    "url": "https://github.com/peterdee"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/peterdee/s3-bucket-downloader"
+  },
+  "type": "module",
   "scripts": {
     "start": "node ./index.js"
   },
-  "type": "module",
-  "author": "",
   "license": "MIT",
   "dependencies": {
     "aws-sdk": "^2.1243.0",
