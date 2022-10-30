@@ -16,7 +16,6 @@ process.on(
     if (!process.send) {
       throw new Error(ERRORS.notAWorkerProcess);
     }
-    console.log('worker', workerId, list.length);
 
     if (list.length === 0) {
       process.send({ event: WORKER_EVENTS.done, workerId });

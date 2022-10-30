@@ -2,8 +2,8 @@ import {
   access,
   mkdir,
 } from 'node:fs/promises';
-import { cpus } from 'os';
-import { fork } from 'child_process';
+import { cpus } from 'node:os';
+import { fork } from 'node:child_process';
 
 import {
   DESTINATION,
@@ -13,11 +13,12 @@ import {
 import log from './utilities/log.js';
 import s3, { BUCKET } from './utilities/s3.js';
 
-const WORKERS_NUMBER = cpus.length;
+const WORKERS_NUMBER = cpus().length;
 
 let counter = 0;
 let finishedWorkers = [];
 let firstToken = '';
+const workers = [];
 
 function showCounter(fileName = '', workerId = null) {
   counter += 1;
@@ -25,16 +26,13 @@ function showCounter(fileName = '', workerId = null) {
 }
 
 function createWorkers() {
-  const workers = [];
   for (let i = 0; i < WORKERS_NUMBER; i += 1) {
     const worker = fork(`${process.cwd()}/utilities/worker.js`);
     workers.push(worker);
   }
-  console.log(workers.length, 'workers');
-  return workers;
 }
 
-async function listObjects(workers, continuationToken = '') {
+async function listObjects(continuationToken = '') {
   const params = {
     Bucket: BUCKET,
     MaxKeys: MAX_KEYS,
@@ -51,7 +49,6 @@ async function listObjects(workers, continuationToken = '') {
     log('Done!');
     return process.exit(0);
   }
-  console.log(list.length, 'res');
 
   if (!firstToken) {
     firstToken = token;
@@ -64,15 +61,15 @@ async function listObjects(workers, continuationToken = '') {
   );
 
   if (filtered.length === 0) {
-    return listObjects(workers, token);
+    return listObjects(token);
   }
-  console.log(filtered.length, 'filtered');
 
   const keysPerWorker = Math.ceil(filtered.length / WORKERS_NUMBER);
-  console.log(workers.length);
   workers.forEach((worker, index) => {
     const offset = index * keysPerWorker;
     const tasks = filtered.slice(offset, offset + keysPerWorker);
+
+    // TODO: register events only once
     worker.on(
       'message',
       ({
@@ -87,7 +84,7 @@ async function listObjects(workers, continuationToken = '') {
           finishedWorkers.push(workerId);
           if (finishedWorkers.length === WORKERS_NUMBER) {
             finishedWorkers = [];
-            return listObjects(workers, token);
+            return listObjects(token);
           }
         }
         return null;
@@ -102,17 +99,17 @@ async function listObjects(workers, continuationToken = '') {
 }
 
 async function launch() {
-  const workers = createWorkers();
+  createWorkers();
   try {
     await access(DESTINATION);
 
-    return listObjects(workers);
+    return listObjects();
   } catch (error) {
     if (error.code && error.code === 'ENOENT') {
       await mkdir(DESTINATION);
       log(`Created directory for downloaded files: ${DESTINATION}`);
 
-      return listObjects(workers);
+      return listObjects();
     }
     throw error;
   }
