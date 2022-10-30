@@ -21,6 +21,14 @@ The `.env` file is required, see [.env.example](.env.example) for details
 npm start
 ```
 
+### Lint
+
+```shell script
+npm run lint
+```
+
+Using [ESLint](https://eslint.org)
+
 ### License
 
-[MIT](./LICENSE.md)
+[MIT](LICENSE.md)
